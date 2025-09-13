@@ -1,8 +1,14 @@
 "use client";
 import { useState } from "react";
 
+type AnalyzeResult = {
+  ska_krav?: string[];
+  bor_krav?: string[];
+  deadlines?: string[];
+};
+
 export default function UploadPage() {
-  const [res, setRes] = useState<any>(null);
+  const [res, setRes] = useState<AnalyzeResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,15 +20,17 @@ export default function UploadPage() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const r = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/analyze", {
-        method: "POST",
-        body: form,
-      });
+      const r = await fetch(
+        (process.env.NEXT_PUBLIC_BACKEND_URL ?? "") + "/analyze",
+        { method: "POST", body: form }
+      );
       if (!r.ok) throw new Error("Backend svarade inte OK");
-      const j = await r.json();
+      const j = (await r.json()) as AnalyzeResult;
       setRes(j);
-    } catch (err:any) {
-      setError(err?.message || "Något gick fel");
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Något gick fel vid uppladdning";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -39,19 +47,19 @@ export default function UploadPage() {
           <div>
             <h2 className="font-semibold mb-2">Ska-krav</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {res.ska_krav?.map((x:string,i:number)=><li key={i}>{x}</li>)}
+              {(res.ska_krav ?? []).map((x, i) => <li key={i}>{x}</li>)}
             </ul>
           </div>
           <div>
             <h2 className="font-semibold mb-2">Bör-krav</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {res.bor_krav?.map((x:string,i:number)=><li key={i}>{x}</li>)}
+              {(res.bor_krav ?? []).map((x, i) => <li key={i}>{x}</li>)}
             </ul>
           </div>
           <div>
             <h2 className="font-semibold mb-2">Deadlines</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {res.deadlines?.map((x:string,i:number)=><li key={i}>{x}</li>)}
+              {(res.deadlines ?? []).map((x, i) => <li key={i}>{x}</li>)}
             </ul>
           </div>
         </div>
