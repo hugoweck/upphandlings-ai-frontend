@@ -7,6 +7,21 @@ type AnalyzeResult = {
   deadlines?: string[];
 };
 
+/** ---- HJÄLPFUNKTIONER (läggs kvar i denna fil) ---- */
+// Ta bort rader som bara är rubriker i datan
+const isHeader = (s: string) => {
+  const t = s.trim().toLowerCase();
+  return (
+    t.startsWith("ska-krav") ||
+    t.startsWith("bör-krav") ||
+    t.startsWith("deadline")
+  );
+};
+
+// Ta bort ledande punkt/streck och extra whitespace
+const clean = (s: string) => s.replace(/^[\s\-•\u2022]+/, "").trim();
+/** --------------------------------------------------- */
+
 export default function UploadPage() {
   const [res, setRes] = useState<AnalyzeResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -44,22 +59,42 @@ export default function UploadPage() {
       {error && <p className="text-red-600">{error}</p>}
       {res && (
         <div className="grid md:grid-cols-3 gap-6">
+          {/* SKA-KRAV */}
           <div>
             <h2 className="font-semibold mb-2">Ska-krav</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {(res.ska_krav ?? []).map((x, i) => <li key={i}>{x}</li>)}
+              {(res.ska_krav ?? [])
+                .filter((x) => !isHeader(x))
+                .map((x, i) => <li key={i}>{clean(x)}</li>)}
+              {(!res.ska_krav || res.ska_krav.filter((x)=>!isHeader(x)).length===0) && (
+                <li className="opacity-70 list-none">Inget hittat.</li>
+              )}
             </ul>
           </div>
+
+          {/* BÖR-KRAV */}
           <div>
             <h2 className="font-semibold mb-2">Bör-krav</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {(res.bor_krav ?? []).map((x, i) => <li key={i}>{x}</li>)}
+              {(res.bor_krav ?? [])
+                .filter((x) => !isHeader(x))
+                .map((x, i) => <li key={i}>{clean(x)}</li>)}
+              {(!res.bor_krav || res.bor_krav.filter((x)=>!isHeader(x)).length===0) && (
+                <li className="opacity-70 list-none">Inget hittat.</li>
+              )}
             </ul>
           </div>
+
+          {/* DEADLINES */}
           <div>
             <h2 className="font-semibold mb-2">Deadlines</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {(res.deadlines ?? []).map((x, i) => <li key={i}>{x}</li>)}
+              {(res.deadlines ?? [])
+                .filter((x) => !isHeader(x))
+                .map((x, i) => <li key={i}>{clean(x)}</li>)}
+              {(!res.deadlines || res.deadlines.filter((x)=>!isHeader(x)).length===0) && (
+                <li className="opacity-70 list-none">Inget hittat.</li>
+              )}
             </ul>
           </div>
         </div>
